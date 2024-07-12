@@ -1,10 +1,9 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const TELEGRAM_TOKEN = '7488038639:AAEQkt0iIq9YGAD8JimptOR3mEMp4xnvfAI';  // Замените на ваш токен
+const TELEGRAM_TOKEN = '7488038639:AAEQkt0iIq9YGAD8JimptOR3mEMp4xnvfAI';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
 app.use(bodyParser.json());
@@ -23,7 +22,7 @@ app.post('/webhook', (req, res) => {
 });
 
 // Обработка входящих сообщений
-function handleMessage(message) {
+async function handleMessage(message) {
     const chatId = message.chat.id;
     const text = message.text.toLowerCase();
 
@@ -53,7 +52,8 @@ function handleMessage(message) {
 }
 
 // Функция отправки сообщений в Telegram
-function sendMessage(chatId, text) {
+async function sendMessage(chatId, text) {
+    const fetch = (await import('node-fetch')).default;
     fetch(`${TELEGRAM_API_URL}/sendMessage`, {
         method: 'POST',
         headers: {
@@ -67,24 +67,30 @@ function sendMessage(chatId, text) {
 }
 
 // Установка вебхука
-fetch(`${TELEGRAM_API_URL}/setWebhook`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-        url: 'https://git.heroku.com/diaper-clicker-app.git',  // Замените на URL вашего сервера
-    }),
-})
-.then(response => response.json())
-.then(data => {
-    if (data.ok) {
-        console.log('Webhook успешно установлен');
-    } else {
-        console.error('Ошибка установки webhook:', data.description);
-    }
-});
+async function setWebhook() {
+    const fetch = (await import('node-fetch')).default;
+    fetch(`${TELEGRAM_API_URL}/setWebhook`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: 'https://diaper-clicker-app.herokuapp.com/webhook',
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            console.log('Webhook успешно установлен');
+        } else {
+            console.error('Ошибка установки webhook:', data.description);
+        }
+    });
+}
+
+setWebhook();
 
 app.listen(port, () => {
     console.log(`Сервер запущен на порту ${port}`);
 });
+
